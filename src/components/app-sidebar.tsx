@@ -1,5 +1,6 @@
 /* This is a demo sidebar. **COMPULSORY** Edit this file to customize the sidebar OR remove it from appLayout OR don't use appLayout at all */
 import React from "react";
+import { Link } from "react-router-dom";
 import { Home, Layers, Compass, Star, Settings, LifeBuoy } from "lucide-react";
 import {
   Sidebar,
@@ -32,12 +33,12 @@ export function AppSidebar(): JSX.Element {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive>
-                <a href="#"><Home /> <span>Home</span></a>
+                <Link to="/admin-dashboard"><Home /> <span>Home</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="#"><Layers /> <span>Projects</span></a>
+                <Link to="/admin-dashboard"><Layers /> <span>Dashboard</span></Link>
               </SidebarMenuButton>
               <SidebarMenuAction>
                 <Star className="size-4" />
@@ -45,7 +46,12 @@ export function AppSidebar(): JSX.Element {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="#"><Compass /> <span>Explore</span></a>
+                <Link to="/admin-dashboard"><Compass /> <span>Analytics</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link to="/admin-dashboard#verification"><Star /> <span>Verification Queue</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -58,9 +64,13 @@ export function AppSidebar(): JSX.Element {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <a href="#"><Star /> <span>Starred</span></a>
+                <Link to="/profile"><Settings /> <span>Profile</span></Link>
               </SidebarMenuButton>
-              <SidebarMenuBadge>5</SidebarMenuBadge>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link to="#"><LifeBuoy /> <span>Help</span></Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>

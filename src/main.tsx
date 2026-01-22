@@ -30,7 +30,7 @@ export function GlobalSimulationProvider({ children }: { children: React.ReactNo
       tick();
     }, 5000); // Progress tick every 5 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [tick]);
   return <>{children}</>;
 }
 const router = createBrowserRouter([
