@@ -28,7 +28,7 @@ export function ProfileView() {
     </div>
   );
   return (
-    <MobileShell role={role || 'sender'}>
+    <MobileShell role={role === 'courier' ? 'courier' : 'sender'}>
       <div className="px-6 pt-12 pb-10 space-y-8">
         <header className="flex flex-col items-center text-center space-y-4">
           <div className="relative">

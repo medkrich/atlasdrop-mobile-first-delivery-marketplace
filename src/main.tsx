@@ -23,14 +23,14 @@ import { AdminDashboard } from '@/pages/AdminDashboard';
 import { useAppStore } from '@/lib/store';
 const queryClient = new QueryClient();
 // Simulation Root Component to drive global state updates
-function GlobalSimulationProvider({ children }: { children: React.ReactNode }) {
+export function GlobalSimulationProvider({ children }: { children: React.ReactNode }) {
   const tick = useAppStore(s => s.tick);
   useEffect(() => {
     const interval = setInterval(() => {
       tick();
     }, 5000); // Progress tick every 5 seconds
     return () => clearInterval(interval);
-  }, [tick]);
+  }, []);
   return <>{children}</>;
 }
 const router = createBrowserRouter([

@@ -25,7 +25,7 @@ export function OrdersView() {
     );
   };
   return (
-    <MobileShell role={role || 'sender'}>
+    <MobileShell role={role === 'courier' ? 'courier' : 'sender'}>
       <div className="px-6 pt-12 pb-6 flex-1 flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">My Orders</h1>
         <Tabs defaultValue="active" className="w-full flex-1 flex flex-col">
