@@ -18,6 +18,7 @@ import { CourierHome } from '@/pages/CourierHome';
 import { TrackingView } from '@/pages/TrackingView';
 import { OrdersView } from '@/pages/OrdersView';
 import { NotificationsView } from '@/pages/NotificationsView';
+import { ProfileView } from '@/pages/ProfileView';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -53,6 +54,11 @@ const router = createBrowserRouter([
   {
     path: "/notifications",
     element: <NotificationsView />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/profile",
+    element: <ProfileView />,
     errorElement: <RouteErrorBoundary />,
   }
 ]);
