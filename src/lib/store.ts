@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Delivery, MOCK_USER, AVAILABLE_JOBS } from './mock-data';
+import { Delivery, MOCK_USER, AVAILABLE_JOBS, MOCK_APPLICATIONS, CourierApplication } from './mock-data';
 export interface Notification {
   id: string;
   title: string;
@@ -8,27 +8,29 @@ export interface Notification {
   type: 'status' | 'payment' | 'system';
   read: boolean;
 }
-// Extend Delivery type for real-time simulation
 export interface EnhancedDelivery extends Delivery {
-  progress: number; // 0 to 100
+  progress: number;
   currentLocation?: { lat: number; lng: number };
 }
 interface AppState {
   user: any;
-  role: 'sender' | 'courier' | null;
+  role: 'sender' | 'courier' | 'admin' | null;
   marketplace: EnhancedDelivery[];
   myDeliveries: EnhancedDelivery[];
   notifications: Notification[];
-  setRole: (role: 'sender' | 'courier') => void;
+  courierApplications: CourierApplication[];
+  setRole: (role: 'sender' | 'courier' | 'admin') => void;
   addDelivery: (delivery: Omit<EnhancedDelivery, 'progress'>) => void;
   acceptDelivery: (id: string, courierName: string) => void;
   updateStatus: (id: string, status: EnhancedDelivery['status']) => void;
   updateProgress: (id: string, progress: number) => void;
-  addNotification: (message: string, type: Notification['type']) => void;
+  addNotification: (message: string, type: Notification['type'], title?: string) => void;
+  verifyCourier: (id: string, status: 'approved' | 'rejected') => void;
+  tick: () => void;
 }
 export const useAppStore = create<AppState>((set) => ({
   user: MOCK_USER,
-  role: (localStorage.getItem('auth_role') as 'sender' | 'courier') || null,
+  role: (localStorage.getItem('auth_role') as 'sender' | 'courier' | 'admin') || null,
   marketplace: AVAILABLE_JOBS.map(j => ({ ...j, progress: 0 })),
   myDeliveries: [],
   notifications: [
@@ -41,6 +43,7 @@ export const useAppStore = create<AppState>((set) => ({
       read: false,
     }
   ],
+  courierApplications: MOCK_APPLICATIONS,
   setRole: (role) => {
     localStorage.setItem('auth_role', role);
     set({ role });
@@ -79,14 +82,48 @@ export const useAppStore = create<AppState>((set) => ({
   updateProgress: (id, progress) => set((state) => ({
     myDeliveries: state.myDeliveries.map(d => d.id === id ? { ...d, progress } : d)
   })),
-  addNotification: (message, type) => set((state) => ({
+  addNotification: (message, type, title = 'Update') => set((state) => ({
     notifications: [{
       id: Math.random().toString(),
-      title: 'Update',
+      title,
       message,
       timestamp: new Date(),
       type,
       read: false,
     }, ...state.notifications]
   })),
+  verifyCourier: (id, status) => set((state) => ({
+    courierApplications: state.courierApplications.map(app => 
+      app.id === id ? { ...app, status: status === 'approved' ? 'verified' : 'rejected' as any } : app
+    )
+  })),
+  tick: () => set((state) => {
+    const nextDeliveries = state.myDeliveries.map(d => {
+      if (d.status === 'in_transit' && d.progress < 100) {
+        const increment = Math.floor(Math.random() * 3) + 1;
+        const newProgress = Math.min(d.progress + increment, 100);
+        const newStatus = newProgress === 100 ? 'delivered' : d.status;
+        return { ...d, progress: newProgress, status: newStatus as any };
+      }
+      return d;
+    });
+    const newlyDelivered = nextDeliveries.filter((d, i) => 
+      d.status === 'delivered' && state.myDeliveries[i].status !== 'delivered'
+    );
+    const newNotifications = [...state.notifications];
+    newlyDelivered.forEach(d => {
+      newNotifications.unshift({
+        id: Math.random().toString(),
+        title: 'Package Delivered',
+        message: `Shipment #${d.id} has reached its destination safely.`,
+        timestamp: new Date(),
+        type: 'status',
+        read: false,
+      });
+    });
+    return {
+      myDeliveries: nextDeliveries,
+      notifications: newNotifications
+    };
+  }),
 }));

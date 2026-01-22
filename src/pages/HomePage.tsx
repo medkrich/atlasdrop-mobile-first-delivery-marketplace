@@ -10,6 +10,8 @@ export function HomePage() {
       navigate('/user-dashboard');
     } else if (role === 'courier') {
       navigate('/courier-dashboard');
+    } else if (role === 'admin') {
+      navigate('/admin-dashboard');
     } else {
       navigate('/auth');
     }

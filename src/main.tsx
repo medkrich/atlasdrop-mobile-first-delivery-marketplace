@@ -1,7 +1,7 @@
 import '@/lib/errorReporter';
 import { enableMapSet } from "immer";
 enableMapSet();
-import { StrictMode } from 'react'
+import React, { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   createBrowserRouter,
@@ -19,7 +19,20 @@ import { TrackingView } from '@/pages/TrackingView';
 import { OrdersView } from '@/pages/OrdersView';
 import { NotificationsView } from '@/pages/NotificationsView';
 import { ProfileView } from '@/pages/ProfileView';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { useAppStore } from '@/lib/store';
 const queryClient = new QueryClient();
+// Simulation Root Component to drive global state updates
+function GlobalSimulationProvider({ children }: { children: React.ReactNode }) {
+  const tick = useAppStore(s => s.tick);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tick();
+    }, 5000); // Progress tick every 5 seconds
+    return () => clearInterval(interval);
+  }, [tick]);
+  return <>{children}</>;
+}
 const router = createBrowserRouter([
   {
     path: "/",
@@ -39,6 +52,11 @@ const router = createBrowserRouter([
   {
     path: "/courier-dashboard",
     element: <CourierHome />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin-dashboard",
+    element: <AdminDashboard />,
     errorElement: <RouteErrorBoundary />,
   },
   {
@@ -63,11 +81,13 @@ const router = createBrowserRouter([
   }
 ]);
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
-        <RouterProvider router={router} />
+        <GlobalSimulationProvider>
+          <RouterProvider router={router} />
+        </GlobalSimulationProvider>
       </ErrorBoundary>
     </QueryClientProvider>
-  </StrictMode>,
+  </React.StrictMode>,
 )
