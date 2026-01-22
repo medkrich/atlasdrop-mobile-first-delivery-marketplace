@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Phone, ShieldCheck, Truck, Package, Shield, ChevronRight } from 'lucide-react';
+import { Sparkles, Phone, ShieldCheck, Truck, Package, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '@/lib/store';
 type AuthStep = 'splash' | 'role-selection' | 'login' | 'otp';
 export function AuthFlow() {
   const [step, setStep] = useState<AuthStep>('splash');
-  const [role, setRole] = useState<'sender' | 'courier' | 'admin' | null>(null);
-  const setStoreRole = useAppStore(s => s.setRole);
+  const [role, setRole] = useState<'sender' | 'courier' | null>(null);
   const navigate = useNavigate();
-  const handleRoleSelect = (selectedRole: 'sender' | 'courier' | 'admin') => {
+  const handleRoleSelect = (selectedRole: 'sender' | 'courier') => {
     setRole(selectedRole);
     setStep('login');
   };
   const handleLogin = () => setStep('otp');
   const handleVerify = () => {
-    if (role) {
-      setStoreRole(role);
-      if (role === 'sender') navigate('/user-dashboard');
-      else if (role === 'courier') navigate('/courier-dashboard');
-      else navigate('/admin-dashboard');
+    if (role === 'sender') {
+      localStorage.setItem('auth_role', 'sender');
+      navigate('/user-dashboard');
+    } else {
+      localStorage.setItem('auth_role', 'courier');
+      navigate('/courier-dashboard');
     }
   };
   return (
@@ -42,8 +41,8 @@ export function AuthFlow() {
               <h1 className="text-4xl font-bold tracking-tight">AtlasDrop</h1>
               <p className="text-slate-500">Logistics simplified for Morocco</p>
             </div>
-            <Button
-              size="lg"
+            <Button 
+              size="lg" 
               className="w-full bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-2xl h-14 text-lg font-semibold"
               onClick={() => setStep('role-selection')}
             >
@@ -59,7 +58,7 @@ export function AuthFlow() {
             exit={{ opacity: 0, x: -50 }}
             className="w-full max-w-sm space-y-6"
           >
-            <h2 className="text-3xl font-bold text-center">Join AtlasDrop</h2>
+            <h2 className="text-3xl font-bold">Choose your role</h2>
             <div className="grid gap-4">
               <button
                 onClick={() => handleRoleSelect('sender')}
@@ -81,20 +80,6 @@ export function AuthFlow() {
                 <h3 className="text-xl font-bold">I am a Courier</h3>
                 <p className="text-slate-500 text-sm">Deliver packages and earn money</p>
               </button>
-              <button
-                onClick={() => handleRoleSelect('admin')}
-                className="group p-5 bg-slate-50/50 border border-slate-100 rounded-3xl text-left hover:border-slate-400 transition-all opacity-80"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                    <Shield className="text-slate-600" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold">Administrator</h3>
-                    <p className="text-slate-400 text-xs">Manage platform operations</p>
-                  </div>
-                </div>
-              </button>
             </div>
           </motion.div>
         )}
@@ -106,25 +91,22 @@ export function AuthFlow() {
             exit={{ opacity: 0, x: -50 }}
             className="w-full max-w-sm space-y-8"
           >
-            <div className="space-y-2 text-center">
+            <div className="space-y-2">
               <h2 className="text-3xl font-bold">Welcome back</h2>
-              <p className="text-slate-500">Enter your credentials to continue</p>
+              <p className="text-slate-500">Enter your phone to continue</p>
             </div>
             <div className="space-y-4">
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">+212</span>
                 <Input className="pl-16 h-14 bg-slate-50 border-slate-100 rounded-2xl text-lg" placeholder="6 00 00 00 00" />
               </div>
-              <Button
+              <Button 
                 onClick={handleLogin}
-                className="w-full h-14 bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-2xl text-lg font-semibold shadow-lg shadow-orange-100"
+                className="w-full h-14 bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-2xl text-lg font-semibold"
               >
                 Send OTP
               </Button>
             </div>
-            {role === 'admin' && (
-              <p className="text-xs text-center text-slate-400">Enterprise authentication required for admin access.</p>
-            )}
           </motion.div>
         )}
         {step === 'otp' && (
@@ -139,7 +121,7 @@ export function AuthFlow() {
             </div>
             <div className="space-y-2">
               <h2 className="text-3xl font-bold">Verification</h2>
-              <p className="text-slate-500">We sent a code to your registered device</p>
+              <p className="text-slate-500">We sent a 4-digit code to your phone</p>
             </div>
             <div className="flex justify-center gap-4">
               {[1, 2, 3, 4].map((i) => (
@@ -148,9 +130,9 @@ export function AuthFlow() {
                 </div>
               ))}
             </div>
-            <Button
+            <Button 
               onClick={handleVerify}
-              className="w-full h-14 bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-2xl text-lg font-semibold shadow-lg shadow-orange-100"
+              className="w-full h-14 bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-2xl text-lg font-semibold"
             >
               Verify & Enter
             </Button>

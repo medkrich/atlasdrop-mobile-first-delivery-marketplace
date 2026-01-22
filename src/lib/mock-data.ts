@@ -15,22 +15,6 @@ export interface Delivery {
   courierName?: string;
   eta?: string;
 }
-export interface CourierApplication {
-  id: string;
-  name: string;
-  city: string;
-  vehicle: 'Motorcycle' | 'Van' | 'Truck';
-  docsStatus: 'pending' | 'verified' | 'rejected';
-  appliedAt: string;
-}
-export interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  timestamp: string;
-  type: 'text' | 'image';
-}
 export const MOCK_USER: UserProfile = {
   id: 'u1',
   name: 'Ahmed Mansouri',
@@ -61,29 +45,11 @@ export const ACTIVE_DELIVERY: Delivery = {
   eta: '8 mins',
 };
 export const EARNINGS_HISTORY = [
-  { day: 'Mon', amount: 320, volume: 45 },
-  { day: 'Tue', amount: 450, volume: 52 },
-  { day: 'Wed', amount: 210, volume: 38 },
-  { day: 'Thu', amount: 580, volume: 65 },
-  { day: 'Fri', amount: 640, volume: 72 },
-  { day: 'Sat', amount: 490, volume: 58 },
-  { day: 'Sun', amount: 150, volume: 24 },
+  { day: 'Mon', amount: 320 },
+  { day: 'Tue', amount: 450 },
+  { day: 'Wed', amount: 210 },
+  { day: 'Thu', amount: 580 },
+  { day: 'Fri', amount: 640 },
+  { day: 'Sat', amount: 490 },
+  { day: 'Sun', amount: 150 },
 ];
-export const MOCK_APPLICATIONS: CourierApplication[] = [
-  { id: 'app-1', name: 'Karim Bennani', city: 'Rabat', vehicle: 'Motorcycle', docsStatus: 'pending', appliedAt: '2023-10-24' },
-  { id: 'app-2', name: 'Salma Idrissi', city: 'Marrakech', vehicle: 'Van', docsStatus: 'pending', appliedAt: '2023-10-25' },
-  { id: 'app-3', name: 'Omar Zaki', city: 'Tangier', vehicle: 'Truck', docsStatus: 'pending', appliedAt: '2023-10-26' },
-];
-export const PLATFORM_METRICS = {
-  totalRevenue: '1.2M MAD',
-  revenueGrowth: '+12.5%',
-  activeJobs: 154,
-  pendingVerifications: 42,
-  userGrowth: '+8.2%'
-};
-export const MOCK_CHATS: Record<string, Message[]> = {
-  'track-123': [
-    { id: 'm1', senderId: 'c1', senderName: 'Youssef Alami', text: 'I have arrived at the port gate.', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), type: 'text' },
-    { id: 'm2', senderId: 'u1', senderName: 'Ahmed Mansouri', text: 'Great, the warehouse manager is expecting you.', timestamp: new Date(Date.now() - 1000 * 60 * 4).toISOString(), type: 'text' },
-  ]
-};
