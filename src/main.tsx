@@ -16,6 +16,8 @@ import { AuthFlow } from '@/pages/AuthFlow';
 import { UserHome } from '@/pages/UserHome';
 import { CourierHome } from '@/pages/CourierHome';
 import { TrackingView } from '@/pages/TrackingView';
+import { OrdersView } from '@/pages/OrdersView';
+import { NotificationsView } from '@/pages/NotificationsView';
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
@@ -41,6 +43,16 @@ const router = createBrowserRouter([
   {
     path: "/tracking/:id",
     element: <TrackingView />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/orders",
+    element: <OrdersView />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/notifications",
+    element: <NotificationsView />,
     errorElement: <RouteErrorBoundary />,
   }
 ]);

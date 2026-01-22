@@ -15,7 +15,7 @@ export function NotificationsView() {
     }
   };
   return (
-    <MobileShell role={role === 'courier' ? 'courier' : 'sender'}>
+    <MobileShell role={role || 'sender'}>
       <div className="px-6 pt-12 pb-6 space-y-6">
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Alerts</h1>
