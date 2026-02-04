@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MobileShell } from '@/components/layout/MobileShell';
 import { useAppStore } from '@/lib/store';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,18 +13,27 @@ export function OrdersView() {
   const myDeliveries = useAppStore(s => s.myDeliveries);
   const chats = useAppStore(s => s.chats);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const active = myDeliveries.filter(d => d.status !== 'delivered');
-  const history = myDeliveries.filter(d => d.status === 'delivered');
+  const active = useMemo(() => 
+    myDeliveries.filter(d => d.status !== 'delivered'),
+    [myDeliveries]
+  );
+  const history = useMemo(() => 
+    myDeliveries.filter(d => d.status === 'delivered'),
+    [myDeliveries]
+  );
   const StatusBadge = ({ status }: { status: string }) => {
     const colors: Record<string, string> = {
       searching: 'bg-orange-100 text-orange-600',
       accepted: 'bg-blue-100 text-blue-600',
+      picked_up: 'bg-indigo-100 text-indigo-600',
       in_transit: 'bg-indigo-100 text-indigo-600',
       delivered: 'bg-green-100 text-green-600',
     };
+    const displayStatus = status ? status.replace('_', ' ') : 'unknown';
+    const colorClass = status ? (colors[status] || 'bg-slate-100 text-slate-600') : 'bg-slate-100 text-slate-600';
     return (
-      <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", colors[status])}>
-        {status.replace('_', ' ')}
+      <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", colorClass)}>
+        {displayStatus}
       </span>
     );
   };
@@ -33,11 +42,11 @@ export function OrdersView() {
       <div className="px-6 pt-12 pb-6 flex-1 flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">My Orders</h1>
         <Tabs defaultValue="active" className="w-full flex-1 flex flex-col">
-          <TabsList className="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl h-12">
+          <TabsList className="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl h-12 shrink-0">
             <TabsTrigger value="active" className="rounded-xl font-bold data-[state=active]:bg-white">Active</TabsTrigger>
             <TabsTrigger value="history" className="rounded-xl font-bold data-[state=active]:bg-white">History</TabsTrigger>
           </TabsList>
-          <TabsContent value="active" className="flex-1 mt-6 space-y-4">
+          <TabsContent value="active" className="flex-1 mt-6 space-y-4 overflow-y-auto">
             {active.length > 0 ? (
               active.map(d => (
                 <div key={d.id} className="group relative">
@@ -48,7 +57,7 @@ export function OrdersView() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <p className="font-bold text-sm truncate pr-8">{d.destination}</p>
+                          <p className="font-bold text-sm truncate pr-12">{d.destination}</p>
                           <p className="text-xs font-mono text-slate-400">#{d.id}</p>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -82,7 +91,7 @@ export function OrdersView() {
               </div>
             )}
           </TabsContent>
-          <TabsContent value="history" className="flex-1 mt-6 space-y-4">
+          <TabsContent value="history" className="flex-1 mt-6 space-y-4 overflow-y-auto">
              {history.length > 0 ? (
               history.map(d => (
                  <Card key={d.id} className="p-4 border-none shadow-sm bg-slate-50/50 rounded-2xl flex items-center gap-4">
@@ -90,10 +99,10 @@ export function OrdersView() {
                       <Package className="text-slate-300" size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm truncate text-slate-600">{d.destination}</p>
+                      <p className="font-bold text-sm truncate text-slate-600 pr-4">{d.destination}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <StatusBadge status={d.status} />
-                        <span className="text-[10px] text-slate-400 font-medium">Delivered Oct 12</span>
+                        <span className="text-[10px] text-slate-400 font-medium">Delivered</span>
                       </div>
                     </div>
                   </Card>
@@ -110,7 +119,9 @@ export function OrdersView() {
         <ChatDrawer 
           deliveryId={selectedChatId} 
           isOpen={!!selectedChatId} 
-          onOpenChange={(open) => !open && setSelectedChatId(null)} 
+          onOpenChange={(open) => {
+            if (!open) setSelectedChatId(null);
+          }} 
         />
       )}
     </MobileShell>

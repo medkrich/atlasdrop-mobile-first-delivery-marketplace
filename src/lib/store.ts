@@ -41,8 +41,13 @@ interface AppState {
   tick: () => void;
 }
 const getSavedChats = () => {
-  const saved = localStorage.getItem('atlas_chats');
-  return saved ? JSON.parse(saved) : MOCK_CHATS;
+  try {
+    const saved = localStorage.getItem('atlas_chats');
+    return saved ? JSON.parse(saved) : MOCK_CHATS;
+  } catch (e) {
+    console.error('Failed to parse chats from localStorage', e);
+    return MOCK_CHATS;
+  }
 };
 export const useAppStore = create<AppState>((set, get) => ({
   user: MOCK_USER,
@@ -78,7 +83,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       marketplace: state.marketplace.filter(d => d.id !== id),
       myDeliveries: [updated, ...state.myDeliveries.filter(d => d.id !== id)],
       notifications: [{
-        id: Math.random().toString(),
+        id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: 'Order Accepted',
         message: `Courier ${courierName} has accepted your delivery #${id}`,
         timestamp: new Date(),
@@ -103,7 +108,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   sendMessage: (deliveryId, text) => {
     const { user, role, chats } = get();
     const newMessage: Message = {
-      id: Math.random().toString(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       senderId: user?.id || 'unknown',
       senderName: user?.name || (role === 'courier' ? 'Courier' : 'Sender'),
       text,
@@ -119,8 +124,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Simulation: Auto-response from courier after 3s if user is sender
     if (role === 'sender') {
       setTimeout(() => {
+        // Ensure delivery still exists before replying
+        const currentDeliveries = get().myDeliveries;
+        if (!currentDeliveries.some(d => d.id === deliveryId)) return;
         const autoMsg: Message = {
-          id: Math.random().toString(),
+          id: `msg-reply-${Date.now()}`,
           senderId: 'c1',
           senderName: 'Youssef Alami',
           text: 'Understood. I am on my way.',
@@ -143,7 +151,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   endCall: () => set({ activeCall: null }),
   addNotification: (message, type, title = 'Update') => set((state) => ({
     notifications: [{
-      id: Math.random().toString(),
+      id: `notif-${Date.now()}`,
       title,
       message,
       timestamp: new Date(),
@@ -153,7 +161,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   })),
   verifyCourier: (id, status) => set((state) => ({
     courierApplications: state.courierApplications.map(app =>
-      app.id === id ? { ...app, status: status === 'approved' ? 'verified' : 'rejected' as any } : app
+      app.id === id ? { ...app, docsStatus: status === 'approved' ? 'verified' : 'rejected' } : app
     )
   })),
   tick: () => set((state) => {
@@ -171,15 +179,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     let nextCall = state.activeCall;
     if (nextCall?.status === 'connected') {
       nextCall = { ...nextCall, duration: nextCall.duration + 1 };
-      if (nextCall.duration > 60) nextCall = null; // Auto-end after 60s for mock
+      if (nextCall.duration > 60) nextCall = null; 
     }
-    const newlyDelivered = nextDeliveries.filter((d, i) =>
+    const newlyDelivered = nextDeliveries.filter((d, i) => 
       d.status === 'delivered' && state.myDeliveries[i].status !== 'delivered'
     );
     const newNotifications = [...state.notifications];
     newlyDelivered.forEach(d => {
       newNotifications.unshift({
-        id: Math.random().toString(),
+        id: `notif-delivered-${d.id}-${Date.now()}`,
         title: 'Package Delivered',
         message: `Shipment #${d.id} has reached its destination safely.`,
         timestamp: new Date(),
