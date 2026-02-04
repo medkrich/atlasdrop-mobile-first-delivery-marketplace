@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Phone, MessageSquare, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Drawer } from 'vaul';
 import { useAppStore } from '@/lib/store';
 import { TrackingMap } from '@/components/delivery/TrackingMap';
+import { ChatDrawer } from '@/components/communication/ChatDrawer';
 export function TrackingView() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,7 +13,11 @@ export function TrackingView() {
   const marketplace = useAppStore(s => s.marketplace);
   const updateStatus = useAppStore(s => s.updateStatus);
   const userRole = useAppStore(s => s.role);
+  const startCall = useAppStore(s => s.startCall);
+  const chats = useAppStore(s => s.chats);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const delivery = [...myDeliveries, ...marketplace].find(d => d.id === id);
+  const unreadCount = id ? (chats[id]?.length || 0) : 0;
   useEffect(() => {
     if (!delivery) {
       const timer = setTimeout(() => navigate('/'), 2000);
@@ -55,10 +60,10 @@ export function TrackingView() {
           </div>
         </header>
         <div className="flex-1 pt-24 px-6">
-          <TrackingMap 
-            progress={delivery.progress} 
-            pickup={delivery.pickup} 
-            destination={delivery.destination} 
+          <TrackingMap
+            progress={delivery.progress}
+            pickup={delivery.pickup}
+            destination={delivery.destination}
           />
         </div>
         <Drawer.Root open={true} modal={false} dismissible={false}>
@@ -76,10 +81,25 @@ export function TrackingView() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="icon" className="w-12 h-12 rounded-2xl border-slate-100 bg-slate-50">
+                    <Button 
+                      onClick={() => setIsChatOpen(true)}
+                      variant="outline" 
+                      size="icon" 
+                      className="w-12 h-12 rounded-2xl border-slate-100 bg-slate-50 relative"
+                    >
                       <MessageSquare size={18} className="text-[#FF6B35]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B35] text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                          {unreadCount}
+                        </span>
+                      )}
                     </Button>
-                    <Button variant="outline" size="icon" className="w-12 h-12 rounded-2xl border-slate-100 bg-slate-50">
+                    <Button 
+                      onClick={() => startCall(delivery.id, delivery.courierName || 'Atlas Courier')}
+                      variant="outline" 
+                      size="icon" 
+                      className="w-12 h-12 rounded-2xl border-slate-100 bg-slate-50"
+                    >
                       <Phone size={18} className="text-[#FF6B35]" />
                     </Button>
                   </div>
@@ -97,7 +117,7 @@ export function TrackingView() {
                   </div>
                 )}
                 {canProgress && (
-                  <Button 
+                  <Button
                     onClick={handleStatusUpdate}
                     className="w-full h-14 bg-[#004E89] hover:bg-[#003d6d] rounded-2xl text-lg font-bold shadow-lg"
                   >
@@ -117,6 +137,14 @@ export function TrackingView() {
             </Drawer.Content>
           </Drawer.Portal>
         </Drawer.Root>
+        {/* Chat Drawer Instance */}
+        {id && (
+          <ChatDrawer 
+            deliveryId={id} 
+            isOpen={isChatOpen} 
+            onOpenChange={setIsChatOpen} 
+          />
+        )}
       </div>
     </div>
   );

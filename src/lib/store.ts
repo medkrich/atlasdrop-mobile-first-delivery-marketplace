@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Delivery, MOCK_USER, AVAILABLE_JOBS, MOCK_APPLICATIONS, CourierApplication } from './mock-data';
+import { Delivery, MOCK_USER, AVAILABLE_JOBS, MOCK_APPLICATIONS, CourierApplication, Message, MOCK_CHATS } from './mock-data';
 export interface Notification {
   id: string;
   title: string;
@@ -12,6 +12,12 @@ export interface EnhancedDelivery extends Delivery {
   progress: number;
   currentLocation?: { lat: number; lng: number };
 }
+export interface CallState {
+  status: 'idle' | 'ringing' | 'connected' | 'ended';
+  deliveryId: string;
+  contactName: string;
+  duration: number;
+}
 interface AppState {
   user: any;
   role: 'sender' | 'courier' | 'admin' | null;
@@ -19,6 +25,8 @@ interface AppState {
   myDeliveries: EnhancedDelivery[];
   notifications: Notification[];
   courierApplications: CourierApplication[];
+  chats: Record<string, Message[]>;
+  activeCall: CallState | null;
   setRole: (role: 'sender' | 'courier' | 'admin') => void;
   addDelivery: (delivery: Omit<EnhancedDelivery, 'progress'>) => void;
   acceptDelivery: (id: string, courierName: string) => void;
@@ -26,9 +34,17 @@ interface AppState {
   updateProgress: (id: string, progress: number) => void;
   addNotification: (message: string, type: Notification['type'], title?: string) => void;
   verifyCourier: (id: string, status: 'approved' | 'rejected') => void;
+  sendMessage: (deliveryId: string, text: string) => void;
+  startCall: (deliveryId: string, contactName: string) => void;
+  acceptCall: () => void;
+  endCall: () => void;
   tick: () => void;
 }
-export const useAppStore = create<AppState>((set) => ({
+const getSavedChats = () => {
+  const saved = localStorage.getItem('atlas_chats');
+  return saved ? JSON.parse(saved) : MOCK_CHATS;
+};
+export const useAppStore = create<AppState>((set, get) => ({
   user: MOCK_USER,
   role: (localStorage.getItem('auth_role') as 'sender' | 'courier' | 'admin') || null,
   marketplace: AVAILABLE_JOBS.map(j => ({ ...j, progress: 0 })),
@@ -44,6 +60,8 @@ export const useAppStore = create<AppState>((set) => ({
     }
   ],
   courierApplications: MOCK_APPLICATIONS,
+  chats: getSavedChats(),
+  activeCall: null,
   setRole: (role) => {
     localStorage.setItem('auth_role', role);
     set({ role });
@@ -82,6 +100,47 @@ export const useAppStore = create<AppState>((set) => ({
   updateProgress: (id, progress) => set((state) => ({
     myDeliveries: state.myDeliveries.map(d => d.id === id ? { ...d, progress } : d)
   })),
+  sendMessage: (deliveryId, text) => {
+    const { user, role, chats } = get();
+    const newMessage: Message = {
+      id: Math.random().toString(),
+      senderId: user?.id || 'unknown',
+      senderName: user?.name || (role === 'courier' ? 'Courier' : 'Sender'),
+      text,
+      timestamp: new Date().toISOString(),
+      type: 'text'
+    };
+    const updatedChats = {
+      ...chats,
+      [deliveryId]: [...(chats[deliveryId] || []), newMessage]
+    };
+    set({ chats: updatedChats });
+    localStorage.setItem('atlas_chats', JSON.stringify(updatedChats));
+    // Simulation: Auto-response from courier after 3s if user is sender
+    if (role === 'sender') {
+      setTimeout(() => {
+        const autoMsg: Message = {
+          id: Math.random().toString(),
+          senderId: 'c1',
+          senderName: 'Youssef Alami',
+          text: 'Understood. I am on my way.',
+          timestamp: new Date().toISOString(),
+          type: 'text'
+        };
+        const curChats = get().chats;
+        const finalChats = { ...curChats, [deliveryId]: [...(curChats[deliveryId] || []), autoMsg] };
+        set({ chats: finalChats });
+        localStorage.setItem('atlas_chats', JSON.stringify(finalChats));
+      }, 3000);
+    }
+  },
+  startCall: (deliveryId, contactName) => set({
+    activeCall: { status: 'ringing', deliveryId, contactName, duration: 0 }
+  }),
+  acceptCall: () => set((state) => ({
+    activeCall: state.activeCall ? { ...state.activeCall, status: 'connected' } : null
+  })),
+  endCall: () => set({ activeCall: null }),
   addNotification: (message, type, title = 'Update') => set((state) => ({
     notifications: [{
       id: Math.random().toString(),
@@ -93,11 +152,12 @@ export const useAppStore = create<AppState>((set) => ({
     }, ...state.notifications]
   })),
   verifyCourier: (id, status) => set((state) => ({
-    courierApplications: state.courierApplications.map(app => 
+    courierApplications: state.courierApplications.map(app =>
       app.id === id ? { ...app, status: status === 'approved' ? 'verified' : 'rejected' as any } : app
     )
   })),
   tick: () => set((state) => {
+    // Progress deliveries
     const nextDeliveries = state.myDeliveries.map(d => {
       if (d.status === 'in_transit' && d.progress < 100) {
         const increment = Math.floor(Math.random() * 3) + 1;
@@ -107,7 +167,13 @@ export const useAppStore = create<AppState>((set) => ({
       }
       return d;
     });
-    const newlyDelivered = nextDeliveries.filter((d, i) => 
+    // Handle Active Call Timer
+    let nextCall = state.activeCall;
+    if (nextCall?.status === 'connected') {
+      nextCall = { ...nextCall, duration: nextCall.duration + 1 };
+      if (nextCall.duration > 60) nextCall = null; // Auto-end after 60s for mock
+    }
+    const newlyDelivered = nextDeliveries.filter((d, i) =>
       d.status === 'delivered' && state.myDeliveries[i].status !== 'delivered'
     );
     const newNotifications = [...state.notifications];
@@ -123,7 +189,8 @@ export const useAppStore = create<AppState>((set) => ({
     });
     return {
       myDeliveries: nextDeliveries,
-      notifications: newNotifications
+      notifications: newNotifications,
+      activeCall: nextCall
     };
   }),
 }));

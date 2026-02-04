@@ -20,6 +20,7 @@ import { OrdersView } from '@/pages/OrdersView';
 import { NotificationsView } from '@/pages/NotificationsView';
 import { ProfileView } from '@/pages/ProfileView';
 import { AdminDashboard } from '@/pages/AdminDashboard';
+import { CallOverlay } from '@/components/communication/CallOverlay';
 import { useAppStore } from '@/lib/store';
 const queryClient = new QueryClient();
 // Simulation Root Component to drive global state updates
@@ -31,7 +32,12 @@ export function GlobalSimulationProvider({ children }: { children: React.ReactNo
     }, 5000); // Progress tick every 5 seconds
     return () => clearInterval(interval);
   }, [tick]);
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <CallOverlay />
+    </>
+  );
 }
 const router = createBrowserRouter([
   {

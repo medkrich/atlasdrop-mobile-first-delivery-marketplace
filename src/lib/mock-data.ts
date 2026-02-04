@@ -23,6 +23,14 @@ export interface CourierApplication {
   docsStatus: 'pending' | 'verified' | 'rejected';
   appliedAt: string;
 }
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+  type: 'text' | 'image';
+}
 export const MOCK_USER: UserProfile = {
   id: 'u1',
   name: 'Ahmed Mansouri',
@@ -72,4 +80,10 @@ export const PLATFORM_METRICS = {
   activeJobs: 154,
   pendingVerifications: 42,
   userGrowth: '+8.2%'
+};
+export const MOCK_CHATS: Record<string, Message[]> = {
+  'track-123': [
+    { id: 'm1', senderId: 'c1', senderName: 'Youssef Alami', text: 'I have arrived at the port gate.', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), type: 'text' },
+    { id: 'm2', senderId: 'u1', senderName: 'Ahmed Mansouri', text: 'Great, the warehouse manager is expecting you.', timestamp: new Date(Date.now() - 1000 * 60 * 4).toISOString(), type: 'text' },
+  ]
 };

@@ -1,24 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAppStore } from '@/lib/store';
 import { PLATFORM_METRICS } from '@/lib/mock-data';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AnalyticsCharts } from '@/components/admin/AnalyticsCharts';
-import { 
-  TrendingUp, 
-  Users, 
-  Package, 
-  ShieldAlert, 
-  CheckCircle, 
+import { ChatDrawer } from '@/components/communication/ChatDrawer';
+import {
+  TrendingUp,
+  Users,
+  Package,
+  ShieldAlert,
+  CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  MessageSquare,
+  Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 export function AdminDashboard() {
   const applications = useAppStore(s => s.courierApplications);
   const verifyCourier = useAppStore(s => s.verifyCourier);
+  const notifications = useAppStore(s => s.notifications);
   const pendingApps = applications.filter(app => app.docsStatus === 'pending');
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const StatBox = ({ title, value, sub, icon: Icon, color }: any) => (
     <Card className="p-6 border-none shadow-soft bg-white rounded-3xl relative overflow-hidden group">
       <div className={cn("absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full opacity-5 transition-transform group-hover:scale-110", color)} />
@@ -43,7 +48,14 @@ export function AdminDashboard() {
             <p className="text-slate-500 font-medium">Monitoring AtlasDrop platform health in real-time.</p>
           </div>
           <div className="flex gap-3">
-            <Button className="rounded-2xl bg-white text-slate-900 border-slate-200 hover:bg-slate-50 shadow-sm px-6 h-12">Export Data</Button>
+            <div className="relative">
+               <Button variant="ghost" className="rounded-2xl bg-white border-slate-200 h-12 w-12 p-0 shadow-sm relative">
+                  <Bell size={20} />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 border-2 border-white rounded-full" />
+                  )}
+               </Button>
+            </div>
             <Button className="rounded-2xl bg-[#FF6B35] hover:bg-[#E55A1B] text-white shadow-lg shadow-orange-100 px-6 h-12 font-bold">System Settings</Button>
           </div>
         </header>
@@ -84,15 +96,15 @@ export function AdminDashboard() {
                       <span className="text-[10px] bg-white px-2 py-0.5 rounded-md font-bold text-slate-400 border border-slate-100 uppercase">Pending</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => verifyCourier(app.id, 'approved')}
                         className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl h-9 text-xs font-bold"
                       >
                         <CheckCircle size={14} className="mr-1" /> Approve
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => verifyCourier(app.id, 'rejected')}
                         className="flex-1 border-red-100 text-red-500 hover:bg-red-50 rounded-xl h-9 text-xs font-bold"
@@ -109,7 +121,6 @@ export function AdminDashboard() {
                 </div>
               )}
             </div>
-            <Button variant="ghost" className="w-full text-slate-400 text-xs font-bold">View Verification History</Button>
           </Card>
         </div>
         <Card className="p-8 border-none shadow-soft bg-white rounded-[32px] space-y-6">
@@ -129,28 +140,45 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {[1, 2, 3].map((i) => (
-                  <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 font-mono font-bold text-sm">#AD-4912-{i}</td>
-                    <td className="py-4">
-                      <p className="text-sm font-bold">Casablanca Port</p>
-                      <p className="text-xs text-slate-400">Arrived 2 hours ago</p>
-                    </td>
-                    <td className="py-4 text-sm font-bold">850 MAD</td>
-                    <td className="py-4">
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase">In Transit</span>
-                    </td>
-                    <td className="py-4 text-right">
-                      <Button size="icon" variant="ghost" className="rounded-xl"><Clock size={16} /></Button>
-                      <Button size="icon" variant="ghost" className="rounded-xl"><ShieldAlert size={16} /></Button>
-                    </td>
-                  </tr>
-                ))}
+                {[1, 2, 3].map((i) => {
+                  const tid = `track-12${i}`;
+                  return (
+                    <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 font-mono font-bold text-sm">#{tid}</td>
+                      <td className="py-4">
+                        <p className="text-sm font-bold">Casablanca Port</p>
+                        <p className="text-xs text-slate-400">Arrived 2 hours ago</p>
+                      </td>
+                      <td className="py-4 text-sm font-bold">850 MAD</td>
+                      <td className="py-4">
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase">In Transit</span>
+                      </td>
+                      <td className="py-4 text-right space-x-2">
+                        <Button 
+                          onClick={() => setActiveChatId(tid)}
+                          size="icon" 
+                          variant="ghost" 
+                          className="rounded-xl text-[#FF6B35] bg-orange-50 hover:bg-orange-100"
+                        >
+                          <MessageSquare size={16} />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="rounded-xl"><ShieldAlert size={16} /></Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </Card>
       </div>
+      {activeChatId && (
+        <ChatDrawer 
+          deliveryId={activeChatId} 
+          isOpen={!!activeChatId} 
+          onOpenChange={(open) => !open && setActiveChatId(null)} 
+        />
+      )}
     </AppLayout>
   );
 }

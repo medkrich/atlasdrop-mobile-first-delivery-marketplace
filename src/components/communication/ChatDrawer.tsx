@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Phone, Paperclip, Smile, MoreHorizontal } from 'lucide-react';
+import { Send, Phone, Paperclip, Smile, MoreHorizontal, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/lib/store';
@@ -19,19 +19,15 @@ export function ChatDrawer({ deliveryId, isOpen, onOpenChange }: ChatDrawerProps
   const startCall = useAppStore(s => s.startCall);
   const myDeliveries = useAppStore(s => s.myDeliveries);
   const user = useAppStore(s => s.user);
-  // Stable memoized reference to messages for the current delivery
-  const messages = useMemo(() => chats[deliveryId] ?? [], [chats, deliveryId]);
-  const delivery = useMemo(() => 
-    myDeliveries.find(d => d.id === deliveryId),
-    [myDeliveries, deliveryId]
-  );
+  const messages = chats[deliveryId] ?? [];
+  const delivery = myDeliveries.find(d => d.id === deliveryId);
   const contactName = delivery?.courierName || 'Atlas Courier';
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (scrollRef.current && isOpen) {
+    if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length, isOpen]);
+  }, [messages, isOpen]);
   const handleSend = () => {
     if (inputText.trim()) {
       sendMessage(deliveryId, inputText);
@@ -56,10 +52,10 @@ export function ChatDrawer({ deliveryId, isOpen, onOpenChange }: ChatDrawerProps
               </div>
               <div>
                 <p className="font-bold text-slate-800">{contactName}</p>
-                <div className="flex items-center gap-1">
+                <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  <p className="text-[10px] text-green-500 font-bold uppercase tracking-wider">Online</p>
-                </div>
+                  Online
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -109,7 +105,7 @@ export function ChatDrawer({ deliveryId, isOpen, onOpenChange }: ChatDrawerProps
                       {m.text}
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 mt-1 px-1">
-                      {m.timestamp ? format(new Date(m.timestamp), 'HH:mm') : ''}
+                      {format(new Date(m.timestamp), 'HH:mm')}
                     </span>
                   </motion.div>
                 );
@@ -129,10 +125,12 @@ export function ChatDrawer({ deliveryId, isOpen, onOpenChange }: ChatDrawerProps
                 placeholder="Type a message..."
                 className="bg-transparent border-none focus-visible:ring-0 shadow-none px-2 h-10"
               />
-              <Button 
+              <button className="text-slate-400 p-2 hover:text-[#FF6B35]">
+                <Paperclip size={20} />
+              </button>
+              <Button
                 onClick={handleSend}
-                disabled={!inputText.trim()}
-                className="bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-xl w-10 h-10 p-0 flex items-center justify-center shadow-lg shadow-orange-100 shrink-0 disabled:opacity-50"
+                className="bg-[#FF6B35] hover:bg-[#E55A1B] text-white rounded-xl w-10 h-10 p-0 flex items-center justify-center shadow-lg shadow-orange-100 shrink-0"
               >
                 <Send size={18} />
               </Button>
