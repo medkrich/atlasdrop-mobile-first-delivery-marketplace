@@ -1,6 +1,6 @@
 # Cloudflare Workers + React Starter
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/medkrich/atlasdrop-mobile-first-delivery-marketplace)
 
 A production-ready full-stack starter template for Cloudflare Workers and Pages. Features a modern React frontend with shadcn/ui, TailwindCSS, and a Hono-powered API backend. Includes TypeScript, Vite, TanStack Query, and seamless deployment to Cloudflare.
 
@@ -75,7 +75,7 @@ For custom domains and bindings:
 2. Run `wrangler deploy --env production`
 3. Assets served via Cloudflare Pages, API via Workers
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/medkrich/atlasdrop-mobile-first-delivery-marketplace)
 
 ## Project Structure
 
